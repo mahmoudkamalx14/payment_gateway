@@ -1,4 +1,4 @@
-# payment_getaway
+# payment_geteway
 
 A new Flutter project.
 
