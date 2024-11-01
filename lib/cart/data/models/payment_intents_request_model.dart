@@ -4,7 +4,7 @@ class PaymentIntentsRequestModel {
     required this.currency,
   });
 
-  final double amount;
+  final int amount;
   final String currency;
 
   factory PaymentIntentsRequestModel.fromJson(Map<String, dynamic> json) {

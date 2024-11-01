@@ -13,6 +13,7 @@ abstract class PaymentService {
   @POST(PaymentConstants.paymentIntents)
   Future<PaymentIntentsResponseModel> createPaymentIntents(
     @Header('Authorization') String secretKey,
+    @Header('Content-Type') String stripeContentType,
     @Body() PaymentIntentsRequestModel paymentIntentsRequestModel,
   );
 }

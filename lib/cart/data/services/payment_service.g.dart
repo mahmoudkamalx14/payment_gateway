@@ -26,11 +26,15 @@ class _PaymentService implements PaymentService {
   @override
   Future<PaymentIntentsResponseModel> createPaymentIntents(
     String secretKey,
+    String stripeContentType,
     PaymentIntentsRequestModel paymentIntentsRequestModel,
   ) async {
     final _extra = <String, dynamic>{};
     final queryParameters = <String, dynamic>{};
-    final _headers = <String, dynamic>{r'Authorization': secretKey};
+    final _headers = <String, dynamic>{
+      r'Authorization': secretKey,
+      r'Content-Type': stripeContentType,
+    };
     _headers.removeWhere((k, v) => v == null);
     final _data = <String, dynamic>{};
     _data.addAll(paymentIntentsRequestModel.toJson());
@@ -38,6 +42,7 @@ class _PaymentService implements PaymentService {
       method: 'POST',
       headers: _headers,
       extra: _extra,
+      contentType: stripeContentType,
     )
         .compose(
           _dio.options,
