@@ -14,16 +14,25 @@ class PaymentMethodsBottomSheet extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    bool isLoading = false;
     return BlocProvider(
       create: (context) => getIt<PaymentCubit>(),
       child: BlocConsumer<PaymentCubit, PaymentState>(
         listener: (context, state) {
-          if (state is PaymentStripeSuccessState) {
+          if (state is PaymentStripeLoadingState) {
+            isLoading = true;
+          } else if (state is PaymentStripeSuccessState) {
             context.navigateTo(Routes.checkScreen);
-          }
-          if (state is PaymentStripeErrorState) {
+          } else if (state is PaymentStripeErrorState) {
             ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text('Error: ffffffffffffffff')),
+              const SnackBar(
+                backgroundColor: Colors.red,
+                animation: AlwaysStoppedAnimation(10),
+                dismissDirection: DismissDirection.vertical,
+                showCloseIcon: true,
+                closeIconColor: Colors.white,
+                content: Text('Error: Failed to Complete payment Sheet'),
+              ),
             );
           }
         },
@@ -37,8 +46,12 @@ class PaymentMethodsBottomSheet extends StatelessWidget {
                 const Spacer(),
                 CustomBotton(
                   text: 'Continue',
+                  isLoading: isLoading,
                   onTap: () {
-                    PaymentCubit.get(context).emitStripePaymentStates(50);
+                    PaymentCubit.get(context).emitStripePaymentStates(
+                      amount: 50,
+                      customerId: 'cus_R8v0vybtlQDiXX',
+                    );
                   },
                 ),
               ],

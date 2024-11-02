@@ -1,9 +1,14 @@
+// ignore_for_file: void_checks
+
 import 'dart:developer';
 
 import 'package:flutter_stripe/flutter_stripe.dart';
-import 'package:payment_getaway/cart/data/models/payment_intents_request_model.dart';
-import 'package:payment_getaway/cart/data/models/payment_intents_response_model.dart';
-import 'package:payment_getaway/cart/data/services/payment_constants.dart';
+import 'package:payment_getaway/cart/data/models/Ephemeral%20Key%20Model/ephemeral_key_request_model.dart';
+import 'package:payment_getaway/cart/data/models/Ephemeral%20Key%20Model/ephemeral_key_response_model.dart';
+import 'package:payment_getaway/cart/data/models/Init%20Payment%20Sheet%20Model/init_payment_sheet_model.dart';
+import 'package:payment_getaway/cart/data/models/Payment%20Intents%20Model/payment_intents_request_model.dart';
+import 'package:payment_getaway/cart/data/models/Payment%20Intents%20Model/payment_intents_response_model.dart';
+import 'package:payment_getaway/cart/data/services/constants/payment_constants.dart';
 import 'package:payment_getaway/cart/data/services/payment_service.dart';
 import 'package:payment_getaway/core/networking/api_result.dart';
 
@@ -26,13 +31,30 @@ class PaymentStripeRepository {
     }
   }
 
+  Future<ApiResult<EphemeralKeyResponseModel>> _createEphemeralKey(
+      EphemeralKeyRequestModel ephemeralKeyRequestModel) async {
+    try {
+      final result = await _paymentService.createEphemeralKey(
+        PaymentConstants.secretKey,
+        PaymentConstants.stripeContentType,
+        PaymentConstants.stripeVersion,
+        ephemeralKeyRequestModel,
+      );
+      return ApiResult.success(result);
+    } catch (e) {
+      return ApiResult.failure(e.toString());
+    }
+  }
+
   Future<void> _initPaymentSheet(
-      {required String paymentIntentClientSecret}) async {
+      InitPaymentSheetModel initPaymentSheetModel) async {
     try {
       await Stripe.instance.initPaymentSheet(
         paymentSheetParameters: SetupPaymentSheetParameters(
           merchantDisplayName: 'Marketi',
-          paymentIntentClientSecret: paymentIntentClientSecret,
+          paymentIntentClientSecret: initPaymentSheetModel.clientSecret,
+          customerId: PaymentConstants.customerId,
+          customerEphemeralKeySecret: initPaymentSheetModel.ephemeralKeySecret,
         ),
       );
     } catch (e) {
@@ -50,17 +72,33 @@ class PaymentStripeRepository {
     final paymentIntentsModel =
         await _createPaymentIntents(paymentIntentsRequestModel);
 
-    if (paymentIntentsModel is Success<PaymentIntentsResponseModel>) {
-      final clientSecret = paymentIntentsModel.data.clientSecret;
+    final ephemeralKeyModel =
+        await _createEphemeralKey(EphemeralKeyRequestModel(
+      customer: paymentIntentsRequestModel.customerId,
+    ));
 
-      await _initPaymentSheet(
-        paymentIntentClientSecret: clientSecret!,
-      );
+    try {
+      if (paymentIntentsModel is Success<PaymentIntentsResponseModel> &&
+          ephemeralKeyModel is Success<EphemeralKeyResponseModel>) {
+        final clientSecret = paymentIntentsModel.data.clientSecret;
 
-      final paymentSheet = await _displayPaymentSheet();
-      return ApiResult.success(paymentSheet);
-    } else {
-      return ApiResult.failure('Failed to create payment intent');
+        await _initPaymentSheet(InitPaymentSheetModel(
+          clientSecret: clientSecret!,
+          customerId: paymentIntentsRequestModel.customerId,
+          ephemeralKeySecret: ephemeralKeyModel.data.secret!,
+        ));
+
+        await _displayPaymentSheet();
+        return ApiResult.success('Payment successful!');
+      } else {
+        return ApiResult.failure('Failed to create payment Sheet');
+      }
+    } on StripeException catch (e) {
+      return ApiResult.failure(e.error.code == FailureCode.Canceled
+          ? "Payment was canceled by the user."
+          : "An error occurred: ${e.error.localizedMessage}");
+    } catch (e) {
+      return ApiResult.failure("An unexpected error occurred: $e");
     }
   }
 }

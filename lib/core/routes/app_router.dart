@@ -19,9 +19,6 @@ class AppRouter {
           ),
         );
 
-      // case Routes.completePaymentScreen:
-      //   return MaterialPageRoute(builder: (_) => const CompletePaymentView());
-
       case Routes.checkScreen:
         return MaterialPageRoute(builder: (_) => const PaymentCheckView());
     }

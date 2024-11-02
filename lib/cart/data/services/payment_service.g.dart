@@ -66,6 +66,51 @@ class _PaymentService implements PaymentService {
     return _value;
   }
 
+  @override
+  Future<EphemeralKeyResponseModel> createEphemeralKey(
+    String secretKey,
+    String stripeContentType,
+    String stripeVersion,
+    EphemeralKeyRequestModel ephemeralKeyRequestModel,
+  ) async {
+    final _extra = <String, dynamic>{};
+    final queryParameters = <String, dynamic>{};
+    final _headers = <String, dynamic>{
+      r'Authorization': secretKey,
+      r'Content-Type': stripeContentType,
+      r'Stripe-Version': stripeVersion,
+    };
+    _headers.removeWhere((k, v) => v == null);
+    final _data = <String, dynamic>{};
+    _data.addAll(ephemeralKeyRequestModel.toJson());
+    final _options = _setStreamType<EphemeralKeyResponseModel>(Options(
+      method: 'POST',
+      headers: _headers,
+      extra: _extra,
+      contentType: stripeContentType,
+    )
+        .compose(
+          _dio.options,
+          'ephemeral_keys',
+          queryParameters: queryParameters,
+          data: _data,
+        )
+        .copyWith(
+            baseUrl: _combineBaseUrls(
+          _dio.options.baseUrl,
+          baseUrl,
+        )));
+    final _result = await _dio.fetch<Map<String, dynamic>>(_options);
+    late EphemeralKeyResponseModel _value;
+    try {
+      _value = EphemeralKeyResponseModel.fromJson(_result.data!);
+    } on Object catch (e, s) {
+      errorLogger?.logError(e, s, _options);
+      rethrow;
+    }
+    return _value;
+  }
+
   RequestOptions _setStreamType<T>(RequestOptions requestOptions) {
     if (T != dynamic &&
         !(requestOptions.responseType == ResponseType.bytes ||

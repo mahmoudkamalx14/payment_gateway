@@ -7,10 +7,11 @@ class CustomBotton extends StatelessWidget {
     super.key,
     required this.text,
     this.onTap,
+    this.isLoading,
   });
 
   final String text;
-
+  final bool? isLoading;
   final void Function()? onTap;
 
   @override
@@ -28,10 +29,12 @@ class CustomBotton extends StatelessWidget {
             ),
           ),
           child: Center(
-            child: Text(
-              text,
-              style: AppStyles.style22Meduim,
-            ),
+            child: isLoading == true
+                ? const CircularProgressIndicator(color: Colors.cyan)
+                : Text(
+                    text,
+                    style: AppStyles.style22Meduim,
+                  ),
           ),
         ),
       ),

@@ -1,6 +1,6 @@
 import 'dart:developer';
 
-import 'package:payment_getaway/cart/data/models/payment_intents_request_model.dart';
+import 'package:payment_getaway/cart/data/models/Payment%20Intents%20Model/payment_intents_request_model.dart';
 import 'package:payment_getaway/cart/data/repository/payment_stripe_repository.dart';
 import 'package:payment_getaway/core/networking/api_result.dart';
 
@@ -13,13 +13,15 @@ class PaymentCubit extends Cubit<PaymentState> {
 
   static PaymentCubit get(context) => BlocProvider.of(context);
 
-  void emitStripePaymentStates(int amount) async {
+  void emitStripePaymentStates(
+      {required int amount, required String customerId}) async {
     emit(PaymentStripeLoadingState());
 
     final respone = await _stripeRepository.executeStripePayment(
       PaymentIntentsRequestModel(
         amount: amount * 100,
         currency: 'USD',
+        customerId: customerId,
       ),
     );
 
