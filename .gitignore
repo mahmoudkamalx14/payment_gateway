@@ -32,6 +32,8 @@ lib/core/utils/my_shared_keys.dart
 .pub/
 /build/
 
+
+lib/core/utils/my_shared_keys.dart
 # Symbolication related
 app.*.symbols
 
